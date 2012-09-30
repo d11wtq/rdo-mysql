@@ -2,6 +2,8 @@
 
 This is the MySQL driver for [RDO—Ruby Data Objects](https://github.com/d11wtq/rdo).
 
+[![Build Status](https://secure.travis-ci.org/d11wtq/rdo-mysql.png)](http://travis-ci.org/d11wtq/rdo-mysql)
+
 Refer to the RDO project [README](https://github.com/d11wtq/rdo) for full usage information.
 
 ## Installation
