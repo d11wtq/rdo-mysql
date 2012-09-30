@@ -9,7 +9,7 @@
 #include <mysql.h>
 
 /** Constructor to return a new TupleList wrapping res */
-VALUE rdo_mysql_tuple_list_new(MYSQL_RES * res);
+VALUE rdo_mysql_tuple_list_new(MYSQL_RES * res, int encoding);
 
 /** Called during extension initialization to create the TupleList class */
 void Init_rdo_mysql_tuples(void);

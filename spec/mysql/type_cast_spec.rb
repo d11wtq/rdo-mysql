@@ -1,5 +1,7 @@
 require "spec_helper"
 require "bigdecimal"
+require "date"
+require "uri"
 
 describe RDO::MySQL::Driver, "type casting" do
   let(:options)    { connection_uri }
@@ -25,6 +27,22 @@ describe RDO::MySQL::Driver, "type casting" do
     it "returns a String" do
       value.should == "bob"
     end
+
+    context "with utf-8 encoding" do
+      let(:options) { URI.parse(connection_uri).tap{|u| u.query = "encoding=utf-8"}.to_s }
+
+      it "has the correct encoding" do
+        value.encoding.should == Encoding.find("utf-8")
+      end
+    end
+
+    context "with iso-8859-1 encoding" do
+      let(:options) { URI.parse(connection_uri).tap{|u| u.query = "encoding=iso-8859-1"}.to_s }
+
+      it "has the correct encoding" do
+        value.encoding.should == Encoding.find("iso-8859-1")
+      end
+    end
   end
 
   describe "char cast" do
@@ -37,6 +55,22 @@ describe RDO::MySQL::Driver, "type casting" do
 
     it "returns a String" do
       value.should == "bobb"
+    end
+
+    context "with utf-8 encoding" do
+      let(:options) { URI.parse(connection_uri).tap{|u| u.query = "encoding=utf-8"}.to_s }
+
+      it "has the correct encoding" do
+        value.encoding.should == Encoding.find("utf-8")
+      end
+    end
+
+    context "with iso-8859-1 encoding" do
+      let(:options) { URI.parse(connection_uri).tap{|u| u.query = "encoding=iso-8859-1"}.to_s }
+
+      it "has the correct encoding" do
+        value.encoding.should == Encoding.find("iso-8859-1")
+      end
     end
   end
 
@@ -51,6 +85,22 @@ describe RDO::MySQL::Driver, "type casting" do
     it "returns a String" do
       value.should == "bobby"
     end
+
+    context "with utf-8 encoding" do
+      let(:options) { URI.parse(connection_uri).tap{|u| u.query = "encoding=utf-8"}.to_s }
+
+      it "has the correct encoding" do
+        value.encoding.should == Encoding.find("utf-8")
+      end
+    end
+
+    context "with iso-8859-1 encoding" do
+      let(:options) { URI.parse(connection_uri).tap{|u| u.query = "encoding=iso-8859-1"}.to_s }
+
+      it "has the correct encoding" do
+        value.encoding.should == Encoding.find("iso-8859-1")
+      end
+    end
   end
 
   describe "binary cast" do
@@ -64,6 +114,10 @@ describe RDO::MySQL::Driver, "type casting" do
     it "returns a String" do
       value.should == "\x00\x11\x22"
     end
+
+    it "has binary encoding" do
+      value.encoding.should == Encoding.find("binary")
+    end
   end
 
   describe "blob cast" do
@@ -76,6 +130,10 @@ describe RDO::MySQL::Driver, "type casting" do
 
     it "returns a String" do
       value.should == "\x00\x11\x22\x33\x44"
+    end
+
+    it "has binary encoding" do
+      value.encoding.should == Encoding.find("binary")
     end
   end
 

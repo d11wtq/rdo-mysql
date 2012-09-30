@@ -9,11 +9,13 @@
 #include <stdio.h>
 #include "tuples.h"
 #include "macros.h"
+#include <ruby/encoding.h>
 
 /** Struct wrapped by RDO::MySQL::Driver */
 typedef struct {
   MYSQL * conn;
   int     is_open;
+  int     encoding;
 } RDOMySQLDriver;
 
 /** Free memory associated with connection during GC */
@@ -39,8 +41,9 @@ static VALUE rdo_mysql_result_info_new(MYSQL * conn, MYSQL_RES * res) {
 /** Allocate memory, wrapping RDOMySQLDriver */
 static VALUE rdo_mysql_driver_allocate(VALUE klass) {
   RDOMySQLDriver * driver = malloc(sizeof(RDOMySQLDriver));
-  driver->conn    = NULL;
-  driver->is_open = 0;
+  driver->conn     = NULL;
+  driver->is_open  = 0;
+  driver->encoding = -1;
 
   return Data_Wrap_Struct(klass, 0, rdo_mysql_driver_free, driver);
 }
@@ -77,10 +80,12 @@ static VALUE rdo_mysql_driver_open(VALUE self) {
         RSTRING_PTR(db),
         NUM2INT(port),
         NULL, // UNIX socket
-        0)) { // flags
+        0)) {
     RDO_ERROR("MySQL connection failed: %s", mysql_error(driver->conn));
   } else {
-    driver->is_open = 1;
+    driver->is_open  = 1;
+    driver->encoding = rb_enc_find_index(
+        RSTRING_PTR(rb_funcall(self, rb_intern("encoding"), 0)));
     rb_funcall(self, rb_intern("after_open"), 0);
   }
 
@@ -101,8 +106,9 @@ static VALUE rdo_mysql_driver_close(VALUE self) {
   Data_Get_Struct(self, RDOMySQLDriver, driver);
 
   mysql_close(driver->conn);
-  driver->conn    = NULL;
-  driver->is_open = 0;
+  driver->conn     = NULL;
+  driver->is_open  = 0;
+  driver->encoding = -1;
 
   return Qtrue;
 }
@@ -151,7 +157,7 @@ static VALUE rdo_mysql_driver_execute(int argc, VALUE * args, VALUE self) {
 
   MYSQL_RES * res = mysql_store_result(driver->conn);
 
-  return RDO_RESULT(rdo_mysql_tuple_list_new(res),
+  return RDO_RESULT(rdo_mysql_tuple_list_new(res, driver->encoding),
       rdo_mysql_result_info_new(driver->conn, res));
 }
 

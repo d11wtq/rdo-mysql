@@ -47,7 +47,7 @@ module RDO
         when "utf-8"
           "utf8"
         when /^iso-8859-[0-9]+$/
-          name.to_s.gsub(/-([0-9]+)$/, "latin\\1")
+          name.to_s.gsub(/^.*?-([0-9]+)$/, "latin\\1")
         else
           name
         end

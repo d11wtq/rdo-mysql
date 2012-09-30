@@ -9,12 +9,16 @@
 #include <stdio.h>
 #include "macros.h"
 
+/* I hate magic numbers */
+#define RDO_MYSQL_BINARY_ENC 63
+
 /** RDO::MySQL::TupleList class */
 static VALUE rdo_mysql_cTupleList;
 
 /** Struct wrapped by TupleList class */
 typedef struct {
   MYSQL_RES * res;
+  int         encoding;
 } RDOMySQLTupleList;
 
 /** Free memory allocated to list during GC */
@@ -24,9 +28,10 @@ static void rdo_mysql_tuple_list_free(RDOMySQLTupleList * list) {
 }
 
 /** Constructor to create a new TupleList for the given result */
-VALUE rdo_mysql_tuple_list_new(MYSQL_RES * res) {
+VALUE rdo_mysql_tuple_list_new(MYSQL_RES * res, int encoding) {
   RDOMySQLTupleList * list = malloc(sizeof(RDOMySQLTupleList));
-  list->res = res;
+  list->res      = res;
+  list->encoding = encoding;
 
   VALUE obj = Data_Wrap_Struct(rdo_mysql_cTupleList,
       0, rdo_mysql_tuple_list_free, list);
@@ -37,7 +42,7 @@ VALUE rdo_mysql_tuple_list_new(MYSQL_RES * res) {
 }
 
 /** Cast the given value to a Ruby type */
-static VALUE rdo_mysql_cast_value(char * v, unsigned long len, MYSQL_FIELD f) {
+static VALUE rdo_mysql_cast_value(char * v, unsigned long len, MYSQL_FIELD f, int enc) {
   switch (f.type) {
     case MYSQL_TYPE_NULL:
       return Qnil;
@@ -49,10 +54,13 @@ static VALUE rdo_mysql_cast_value(char * v, unsigned long len, MYSQL_FIELD f) {
     case MYSQL_TYPE_LONGLONG:
       return RDO_FIXNUM(v);
 
-    case MYSQL_TYPE_STRING:     // char/binary (ugh)
-    case MYSQL_TYPE_VAR_STRING: // varchar/varbinary
-    case MYSQL_TYPE_BLOB:       // blob/text
-      return RDO_BINARY_STRING(v, len); // FIXME: Actually handle encoding
+    case MYSQL_TYPE_STRING:
+    case MYSQL_TYPE_VAR_STRING:
+    case MYSQL_TYPE_BLOB:
+      if (f.charsetnr == RDO_MYSQL_BINARY_ENC)
+        return RDO_BINARY_STRING(v, len);
+      else
+        return RDO_STRING(v, len, enc);
 
     case MYSQL_TYPE_DECIMAL:
     case MYSQL_TYPE_NEWDECIMAL:
@@ -97,7 +105,7 @@ static VALUE rdo_mysql_tuple_list_each(VALUE self) {
     for (; i < nfields; ++i) {
       rb_hash_aset(hash,
           ID2SYM(rb_intern(fields[i].name)),
-          rdo_mysql_cast_value(row[i], lengths[i], fields[i]));
+          rdo_mysql_cast_value(row[i], lengths[i], fields[i], list->encoding));
     }
 
     rb_yield(hash);
