@@ -69,4 +69,40 @@ describe RDO::MySQL::Driver do
       end
     end
   end
+
+  describe "#quote" do
+    it "escapes values for safe insertion into a query" do
+      connection.quote("that's life!").should == "that\\'s life!"
+    end
+  end
+
+  describe "#execute" do
+    before(:each) do
+      connection.execute("DROP TABLE IF EXISTS test")
+      connection.execute <<-SQL
+      CREATE TABLE test (
+        id   INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(255)
+      ) ENGINE=InnoDB CHARSET=utf8
+      SQL
+    end
+
+    after(:each) do
+      connection.execute("DROP TABLE IF EXISTS test")
+    end
+
+    context "with an insert" do
+      let(:result) do
+        connection.execute("INSERT INTO test (name) VALUES (?)", "jimmy")
+      end
+
+      it "returns a RDO::Result" do
+        result.should be_a_kind_of(RDO::Result)
+      end
+
+      it "provides the #insert_id" do
+        result.insert_id.should == 1
+      end
+    end
+  end
 end

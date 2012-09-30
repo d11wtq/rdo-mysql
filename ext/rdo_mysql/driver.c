@@ -91,6 +91,57 @@ static VALUE rdo_mysql_driver_close(VALUE self) {
   return Qtrue;
 }
 
+/** Quote values for safe insertion into a statement */
+static VALUE rdo_mysql_driver_quote(VALUE self, VALUE obj) {
+  if (TYPE(obj) != T_STRING) {
+    obj = RDO_OBJ_TO_S(obj);
+  }
+
+  RDOMySQLDriver * driver;
+  Data_Get_Struct(self, RDOMySQLDriver, driver);
+
+  if (!(driver->is_open)) {
+    RDO_ERROR("Unable to quote value: connection is closed");
+  }
+
+  char quoted[RSTRING_LEN(obj) * 2 + 1];
+
+  mysql_real_escape_string(driver->conn,
+      quoted, RSTRING_PTR(obj), RSTRING_LEN(obj));
+
+  return rb_str_new2(quoted);
+}
+
+/** Execute a statement with possible bind parameters */
+static VALUE rdo_mysql_driver_execute(int argc, VALUE * args, VALUE self) {
+  if (argc < 1) {
+    rb_raise(rb_eArgError, "wrong number of arguments (0 for 1)");
+  }
+
+  RDOMySQLDriver * driver;
+  Data_Get_Struct(self, RDOMySQLDriver, driver);
+
+  if (!(driver->is_open)) {
+    RDO_ERROR("Cannot execute query: connection is not open");
+  }
+
+  VALUE stmt = RDO_INTERPOLATE(self, args, argc);
+
+  if (mysql_real_query(driver->conn,
+        RSTRING_PTR(stmt),
+        RSTRING_LEN(stmt)) != 0) {
+    RDO_ERROR("Failed to execute query: %s", mysql_error(driver->conn));
+  }
+
+  VALUE info = rb_hash_new();
+  rb_hash_aset(info, ID2SYM(rb_intern("insert_id")),
+      LL2NUM(mysql_insert_id(driver->conn)));
+  rb_hash_aset(info, ID2SYM(rb_intern("affected_rows")),
+      LL2NUM(mysql_affected_rows(driver->conn)));
+
+  return RDO_RESULT(rb_ary_new(), info);
+}
+
 /** Initializer driver during extension initialization */
 void Init_rdo_mysql_driver(void) {
   rb_require("rdo/mysql/driver");
@@ -102,5 +153,6 @@ void Init_rdo_mysql_driver(void) {
   rb_define_method(cMySQL, "open", rdo_mysql_driver_open, 0);
   rb_define_method(cMySQL, "open?", rdo_mysql_driver_open_p, 0);
   rb_define_method(cMySQL, "close", rdo_mysql_driver_close, 0);
+  rb_define_method(cMySQL, "quote", rdo_mysql_driver_quote, 1);
+  rb_define_method(cMySQL, "execute", rdo_mysql_driver_execute, -1);
 }
-
