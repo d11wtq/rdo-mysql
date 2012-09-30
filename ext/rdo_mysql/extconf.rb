@@ -7,7 +7,7 @@ end
 def config_value(type, flag)
   IO.popen("mysql_config --#{type}").
     readline.chomp.
-    split(/\s+/).select{|s| s =~ /#{flag}/}.
+    split(/\s+/).select{|s| s =~ /^#{flag}/}.
     map{|s| s.sub(/^#{flag}/, "")}.uniq
 rescue
   Array[]
