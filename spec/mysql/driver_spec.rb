@@ -82,7 +82,8 @@ describe RDO::MySQL::Driver do
       connection.execute <<-SQL
       CREATE TABLE test (
         id   INT PRIMARY KEY AUTO_INCREMENT,
-        name VARCHAR(255)
+        name VARCHAR(255),
+        age  INT
       ) ENGINE=InnoDB CHARSET=utf8
       SQL
     end
@@ -102,6 +103,52 @@ describe RDO::MySQL::Driver do
 
       it "provides the #insert_id" do
         result.insert_id.should == 1
+      end
+    end
+
+    context "with a select" do
+      before(:each) do
+        connection.execute("INSERT INTO test (name, age) VALUES (?, ?)", "jimmy", 22)
+        connection.execute("INSERT INTO test (name, age) VALUES (?, ?)", "harry", 28)
+        connection.execute("INSERT INTO test (name, age) VALUES (?, ?)", "kat", 31)
+      end
+
+      let(:result) do
+        connection.execute("SELECT * FROM test WHERE age > ?", 25)
+      end
+
+      it "returns a RDO::Result" do
+        result.should be_a_kind_of(RDO::Result)
+      end
+
+      it "provides the #count" do
+        result.count.should == 2
+      end
+
+      it "allows enumeration of the rows" do
+        rows = []
+        result.each {|row| rows << row}
+        rows.should == [{id: 2, name: "harry", age: 28}, {id: 3, name: "kat", age: 31}]
+      end
+    end
+
+    context "with an update" do
+      before(:each) do
+        connection.execute("INSERT INTO test (name, age) VALUES (?, ?)", "jimmy", 22)
+        connection.execute("INSERT INTO test (name, age) VALUES (?, ?)", "harry", 28)
+        connection.execute("INSERT INTO test (name, age) VALUES (?, ?)", "kat", 31)
+      end
+
+      let(:result) do
+        connection.execute("UPDATE test SET age = age + 3 WHERE age > ?", 25)
+      end
+
+      it "returns a RDO::Result" do
+        result.should be_a_kind_of(RDO::Result)
+      end
+
+      it "provides the #affected_rows" do
+        result.affected_rows.should == 2
       end
     end
   end

@@ -7,6 +7,7 @@
 
 #include "driver.h"
 #include <stdio.h>
+#include "tuples.h"
 #include "macros.h"
 
 /** Struct wrapped by RDO::MySQL::Driver */
@@ -19,6 +20,20 @@ typedef struct {
 static void rdo_mysql_driver_free(RDOMySQLDriver * driver) {
   mysql_close(driver->conn);
   free(driver);
+}
+
+/** Extract result information from the given result */
+static VALUE rdo_mysql_result_info_new(MYSQL * conn, MYSQL_RES * res) {
+  unsigned long long count = (res == NULL) ? 0 : mysql_num_rows(res);
+
+  VALUE info = rb_hash_new();
+  rb_hash_aset(info, ID2SYM(rb_intern("count")), LL2NUM(count));
+  rb_hash_aset(info, ID2SYM(rb_intern("insert_id")),
+      LL2NUM(mysql_insert_id(conn)));
+  rb_hash_aset(info, ID2SYM(rb_intern("affected_rows")),
+      LL2NUM(mysql_affected_rows(conn)));
+
+  return info;
 }
 
 /** Allocate memory, wrapping RDOMySQLDriver */
@@ -133,13 +148,10 @@ static VALUE rdo_mysql_driver_execute(int argc, VALUE * args, VALUE self) {
     RDO_ERROR("Failed to execute query: %s", mysql_error(driver->conn));
   }
 
-  VALUE info = rb_hash_new();
-  rb_hash_aset(info, ID2SYM(rb_intern("insert_id")),
-      LL2NUM(mysql_insert_id(driver->conn)));
-  rb_hash_aset(info, ID2SYM(rb_intern("affected_rows")),
-      LL2NUM(mysql_affected_rows(driver->conn)));
+  MYSQL_RES * res = mysql_store_result(driver->conn);
 
-  return RDO_RESULT(rb_ary_new(), info);
+  return RDO_RESULT(rdo_mysql_tuple_list_new(res),
+      rdo_mysql_result_info_new(driver->conn, res));
 }
 
 /** Initializer driver during extension initialization */
@@ -155,4 +167,6 @@ void Init_rdo_mysql_driver(void) {
   rb_define_method(cMySQL, "close", rdo_mysql_driver_close, 0);
   rb_define_method(cMySQL, "quote", rdo_mysql_driver_quote, 1);
   rb_define_method(cMySQL, "execute", rdo_mysql_driver_execute, -1);
+
+  Init_rdo_mysql_tuples();
 }
