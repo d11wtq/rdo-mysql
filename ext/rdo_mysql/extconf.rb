@@ -16,7 +16,7 @@ end
 def have_build_env
   [
     have_header("mysql.h"),
-    p(config_value("libs", "-l").all?{|lib| have_library(lib)}
+    p(config_value("libs", "-l")).all?{|lib| have_library(lib)}
   ].all?
 end
 
