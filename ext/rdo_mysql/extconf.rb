@@ -16,14 +16,14 @@ end
 def have_build_env
   [
     have_header("mysql.h"),
-    p(config_value("libs", "-l")).all?{|lib| have_library(lib)}
+    config_value("libs", "-l").all?{|lib| have_library(lib)}
   ].all?
 end
 
 dir_config(
   "mysqlclient",
-  p(config_value("include", "-I")),
-  p(config_value("libs", "-L"))
+  config_value("include", "-I"),
+  config_value("libs", "-L")
 )
 
 unless have_build_env
