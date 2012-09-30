@@ -5,7 +5,8 @@ if ENV["CC"]
 end
 
 def config_value(type, flag)
-  IO.popen("mysql_config5 --#{type}").
+  puts `mysql_config`
+  IO.popen("mysql_config --#{type}").
     readline.chomp.
     split(/\s+/).select{|s| s =~ /#{flag}/}.
     map{|s| s.sub(/^#{flag}/, "")}.uniq
