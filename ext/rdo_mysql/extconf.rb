@@ -5,7 +5,6 @@ if ENV["CC"]
 end
 
 def config_value(type, flag)
-  puts `mysql_config`
   IO.popen("mysql_config --#{type}").
     readline.chomp.
     split(/\s+/).select{|s| s =~ /#{flag}/}.
@@ -17,14 +16,14 @@ end
 def have_build_env
   [
     have_header("mysql.h"),
-    config_value("libs", "-l").all?{|lib| have_library(lib)}
+    (p config_value("libs", "-l")).all?{|lib| have_library(lib)}
   ].all?
 end
 
 dir_config(
   "mysqlclient",
-  config_value("include", "-I"),
-  config_value("libs", "-L")
+  p config_value("include", "-I"),
+  p config_value("libs", "-L")
 )
 
 unless have_build_env
