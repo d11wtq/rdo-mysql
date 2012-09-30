@@ -32,9 +32,9 @@ MySQL, in theory supports prepared statements. But really you would not want
 to use them. There are still a number of known limitations with MySQL prepared
 statements, as outlined here:
 
-http://dev.mysql.com/doc/refman/5.0/en/c-api-prepared-statement-problems.html
-http://dev.mysql.com/doc/refman/5.1/en/c-api-prepared-statement-problems.html
-http://dev.mysql.com/doc/refman/5.5/en/c-api-prepared-statement-problems.html
+  - http://dev.mysql.com/doc/refman/5.0/en/c-api-prepared-statement-problems.html
+  - http://dev.mysql.com/doc/refman/5.1/en/c-api-prepared-statement-problems.html
+  - http://dev.mysql.com/doc/refman/5.5/en/c-api-prepared-statement-problems.html
 
 rdo-mysql uses RDO's emulated prepared statement support instead. If people
 shout loud enough that they'd prefer to use MySQL's problematic prepared
