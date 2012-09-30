@@ -37,8 +37,11 @@ VALUE rdo_mysql_tuple_list_new(MYSQL_RES * res) {
 }
 
 /** Cast the given value to a Ruby type */
-static VALUE rdo_mysql_cast_value(char * v, MYSQL_FIELD f) {
+static VALUE rdo_mysql_cast_value(char * v, unsigned long len, MYSQL_FIELD f) {
   switch (f.type) {
+    case MYSQL_TYPE_NULL:
+      return Qnil;
+
     case MYSQL_TYPE_TINY:
     case MYSQL_TYPE_SHORT:
     case MYSQL_TYPE_LONG:
@@ -46,8 +49,28 @@ static VALUE rdo_mysql_cast_value(char * v, MYSQL_FIELD f) {
     case MYSQL_TYPE_LONGLONG:
       return RDO_FIXNUM(v);
 
+    case MYSQL_TYPE_STRING:     // char/binary (ugh)
+    case MYSQL_TYPE_VAR_STRING: // varchar/varbinary
+    case MYSQL_TYPE_BLOB:       // blob/text
+      return RDO_BINARY_STRING(v, len); // FIXME: Actually handle encoding
+
+    case MYSQL_TYPE_DECIMAL:
+    case MYSQL_TYPE_NEWDECIMAL:
+      return RDO_DECIMAL(v);
+
+    case MYSQL_TYPE_FLOAT:
+    case MYSQL_TYPE_DOUBLE:
+      return RDO_FLOAT(v);
+
+    case MYSQL_TYPE_DATE:
+      return RDO_DATE(v);
+
+    case MYSQL_TYPE_TIMESTAMP:
+    case MYSQL_TYPE_DATETIME:
+      return RDO_DATE_TIME_WITHOUT_ZONE(v);
+
     default:
-      return RDO_STRING(v, strlen(v), 1);
+      return RDO_BINARY_STRING(v, len);
   }
 }
 
@@ -62,18 +85,19 @@ static VALUE rdo_mysql_tuple_list_each(VALUE self) {
 
   mysql_data_seek(list->res, 0);
 
-  unsigned int   nfields = mysql_num_fields(list->res);
-  MYSQL_FIELD  * fields  = mysql_fetch_fields(list->res);
-  MYSQL_ROW      row;
+  unsigned int    nfields = mysql_num_fields(list->res);
+  MYSQL_FIELD   * fields  = mysql_fetch_fields(list->res);
+  MYSQL_ROW       row;
 
   while ((row = mysql_fetch_row(list->res))) {
-    VALUE hash     = rb_hash_new();
-    unsigned int i = 0;
+    unsigned long * lengths = mysql_fetch_lengths(list->res);
+    VALUE           hash    = rb_hash_new();
+    unsigned int    i       = 0;
 
     for (; i < nfields; ++i) {
       rb_hash_aset(hash,
           ID2SYM(rb_intern(fields[i].name)),
-          rdo_mysql_cast_value(row[i], fields[i]));
+          rdo_mysql_cast_value(row[i], lengths[i], fields[i]));
     }
 
     rb_yield(hash);

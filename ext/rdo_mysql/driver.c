@@ -81,6 +81,7 @@ static VALUE rdo_mysql_driver_open(VALUE self) {
     RDO_ERROR("MySQL connection failed: %s", mysql_error(driver->conn));
   } else {
     driver->is_open = 1;
+    rb_funcall(self, rb_intern("after_open"), 0);
   }
 
   return Qtrue;
