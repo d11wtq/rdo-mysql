@@ -48,13 +48,13 @@ describe RDO::MySQL::Driver, "type casting" do
   describe "char cast" do
     before(:each) do
       connection.execute("CREATE TEMPORARY TABLE test (v CHAR(4))")
-      connection.execute("INSERT INTO test (v) VALUES ('bobby')")
+      connection.execute("INSERT INTO test (v) VALUES ('dave')")
     end
 
     let(:sql) { "SELECT v FROM test" }
 
     it "returns a String" do
-      value.should == "bobb"
+      value.should == "dave"
     end
 
     context "with utf-8 encoding" do
