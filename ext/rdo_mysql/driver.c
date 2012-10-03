@@ -145,8 +145,10 @@ static void rdo_mysql_driver_normalize_date_times_bang(VALUE * args, int argc) {
           0);
 
       args[i] = rb_funcall(args[i], rb_intern("new_offset"), 1, offset);
+      args[i] = rb_funcall(args[i], rb_intern("strftime"), 1, rb_str_new2("%Y-%m-%d %H:%M:%S"));
     } else if (rb_funcall(args[i], rb_intern("kind_of?"), 1, rb_cTime)) {
       args[i] = rb_funcall(args[i], rb_intern("localtime"), 0);
+      args[i] = rb_funcall(args[i], rb_intern("strftime"), 1, rb_str_new2("%Y-%m-%d %H:%M:%S"));
     }
   }
 }
@@ -183,6 +185,7 @@ static VALUE rdo_mysql_driver_execute(int argc, VALUE * args, VALUE self) {
 /** Initializer driver during extension initialization */
 void Init_rdo_mysql_driver(void) {
   rb_require("rdo/mysql/driver");
+  rb_require("date");
 
   VALUE cMySQL = rb_path2class("RDO::MySQL::Driver");
 
