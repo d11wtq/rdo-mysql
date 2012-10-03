@@ -1,5 +1,6 @@
 require "spec_helper"
 require "date"
+require "bigdecimal"
 
 describe RDO::MySQL::Driver, "bind params" do
   let(:options)    { connection_uri }
@@ -266,6 +267,90 @@ describe RDO::MySQL::Driver, "bind params" do
       it "is inferred correctly" do
         tuple[:value].should be_a_kind_of(Float)
         tuple.should == {id: 1, value: 42.0}
+      end
+    end
+  end
+
+  describe "Float param" do
+    context "against a float field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value FLOAT
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", 42.6] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: 42.6}
+      end
+    end
+
+    context "against an integer field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value INT
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", 42.2] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: 42}
+      end
+    end
+
+    context "against a varchar field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value VARCHAR(32)
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", 42.2] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: "42.2"}
+      end
+    end
+  end
+
+  describe "BigDecimal param" do
+    context "against a decimal field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value DECIMAL(4,2)
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", BigDecimal("17.56")] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: BigDecimal("17.56")}
+      end
+    end
+
+    context "against a float field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value FLOAT
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", BigDecimal("17.56")] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: 17.56}
       end
     end
   end
