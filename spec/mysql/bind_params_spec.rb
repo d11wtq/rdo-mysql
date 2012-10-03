@@ -170,4 +170,103 @@ describe RDO::MySQL::Driver, "bind params" do
       end
     end
   end
+
+  describe "Fixnum param" do
+    context "against an integer field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value INT
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", 42] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: 42}
+      end
+    end
+
+    context "against a varchar field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value VARCHAR(32)
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", 42] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: "42"}
+      end
+    end
+
+    context "against a char field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value CHAR(3)
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", 42] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: "42"}
+      end
+    end
+
+    context "against a text field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value TEXT
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", 42] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: "42"}
+      end
+    end
+
+    context "against a blob field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value TEXT
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", 42] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: "42"}
+      end
+    end
+
+    context "against a float field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value FLOAT
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", 42] }
+
+      it "is inferred correctly" do
+        tuple[:value].should be_a_kind_of(Float)
+        tuple.should == {id: 1, value: 42.0}
+      end
+    end
+  end
 end
