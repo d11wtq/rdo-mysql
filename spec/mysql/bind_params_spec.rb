@@ -230,10 +230,10 @@ describe RDO::MySQL::Driver, "bind params" do
         )
         SQL
       end
-      let(:insert) { ["INSERT INTO test (value) VALUES (?)", "bob"] }
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", "\x00\x11\x22"] }
 
       it "is inferred correctly" do
-        tuple.should == {id: 1, value: "bob"}
+        tuple.should == {id: 1, value: "\x00\x11\x22"}
       end
     end
 
