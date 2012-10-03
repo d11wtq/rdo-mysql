@@ -354,4 +354,182 @@ describe RDO::MySQL::Driver, "bind params" do
       end
     end
   end
+
+  describe "Date param" do
+    context "against a date field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value DATE
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", Date.new(1983, 5, 3)] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: Date.new(1983, 5, 3)}
+      end
+    end
+
+    context "against a varchar field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value VARCHAR(32)
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", Date.new(1983, 5, 3)] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: "1983-05-03"}
+      end
+    end
+  end
+
+  describe "DateTime param" do
+    context "against a datetime field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value DATETIME
+        )
+        SQL
+      end
+
+      let(:insert) do
+        [
+          "INSERT INTO test (value) VALUES (?)",
+          DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone)
+        ]
+      end
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone)}
+      end
+
+      context "with a time zone" do
+        let(:insert) do
+          [
+            "INSERT INTO test (value) VALUES (?)",
+            DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone).new_offset(0)
+          ]
+        end
+
+        it "is inferred correctly" do
+          tuple.should == {id: 1, value: DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone)}
+        end
+      end
+    end
+
+    context "against a timestamp field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value TIMESTAMP
+        )
+        SQL
+      end
+
+      let(:insert) do
+        [
+          "INSERT INTO test (value) VALUES (?)",
+          DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone)
+        ]
+      end
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone)}
+      end
+
+      context "with a time zone" do
+        let(:insert) do
+          [
+            "INSERT INTO test (value) VALUES (?)",
+            DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone).new_offset(0)
+          ]
+        end
+
+        it "is inferred correctly" do
+          tuple.should == {id: 1, value: DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone)}
+        end
+      end
+    end
+  end
+
+  describe "Time param" do
+    context "against a datetime field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value DATETIME
+        )
+        SQL
+      end
+
+      let(:insert) do
+        [
+          "INSERT INTO test (value) VALUES (?)",
+          Time.local(1983, 5, 3, 7, 18, 54)
+        ]
+      end
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone)}
+      end
+
+      context "with a time zone" do
+        let(:insert) do
+          [
+            "INSERT INTO test (value) VALUES (?)",
+            Time.local(1983, 5, 3, 7, 18, 54).utc
+          ]
+        end
+
+        it "is inferred correctly" do
+          tuple.should == {id: 1, value: DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone)}
+        end
+      end
+    end
+
+    context "against a timestamp field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value TIMESTAMP
+        )
+        SQL
+      end
+
+      let(:insert) do
+        [
+          "INSERT INTO test (value) VALUES (?)",
+          Time.local(1983, 5, 3, 7, 18, 54)
+        ]
+      end
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone)}
+      end
+
+      context "with a time zone" do
+        let(:insert) do
+          [
+            "INSERT INTO test (value) VALUES (?)",
+            Time.local(1983, 5, 3, 7, 18, 54).utc
+          ]
+        end
+
+        it "is inferred correctly" do
+          tuple.should == {id: 1, value: DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone)}
+        end
+      end
+    end
+  end
 end

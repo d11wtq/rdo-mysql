@@ -134,6 +134,23 @@ static VALUE rdo_mysql_driver_quote(VALUE self, VALUE obj) {
   return rb_str_new2(quoted);
 }
 
+/** Find any Time/DateTime arguments and ensure they use the system time zone */
+static void rdo_mysql_driver_normalize_date_times_bang(VALUE * args, int argc) {
+  int i;
+  for (i = 0; i < argc; ++i) {
+    if (rb_funcall(args[i], rb_intern("kind_of?"), 1, rb_path2class("DateTime"))) {
+      VALUE offset = rb_funcall(
+          rb_funcall(rb_path2class("DateTime"), rb_intern("now"), 0),
+          rb_intern("offset"),
+          0);
+
+      args[i] = rb_funcall(args[i], rb_intern("new_offset"), 1, offset);
+    } else if (rb_funcall(args[i], rb_intern("kind_of?"), 1, rb_cTime)) {
+      args[i] = rb_funcall(args[i], rb_intern("localtime"), 0);
+    }
+  }
+}
+
 /** Execute a statement with possible bind parameters */
 static VALUE rdo_mysql_driver_execute(int argc, VALUE * args, VALUE self) {
   if (argc < 1) {
@@ -146,6 +163,8 @@ static VALUE rdo_mysql_driver_execute(int argc, VALUE * args, VALUE self) {
   if (!(driver->is_open)) {
     RDO_ERROR("Cannot execute query: connection is not open");
   }
+
+  rdo_mysql_driver_normalize_date_times_bang(&args[1], argc - 1);
 
   VALUE stmt = RDO_INTERPOLATE(self, args, argc);
 
