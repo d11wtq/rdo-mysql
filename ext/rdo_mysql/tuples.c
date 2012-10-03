@@ -43,6 +43,9 @@ VALUE rdo_mysql_tuple_list_new(MYSQL_RES * res, int encoding) {
 
 /** Cast the given value to a Ruby type */
 static VALUE rdo_mysql_cast_value(char * v, unsigned long len, MYSQL_FIELD f, int enc) {
+  if (v == NULL)
+    return Qnil;
+
   switch (f.type) {
     case MYSQL_TYPE_NULL:
       return Qnil;

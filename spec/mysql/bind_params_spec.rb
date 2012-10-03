@@ -26,6 +26,152 @@ describe RDO::MySQL::Driver, "bind params" do
     end
   end
 
+  describe "nil param" do
+    context "against a varchar field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value VARCHAR(32)
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", nil] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: nil}
+      end
+    end
+
+    context "against a char field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value CHAR(3)
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", nil] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: nil}
+      end
+    end
+
+    context "against a text field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value TEXT
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", nil] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: nil}
+      end
+    end
+
+    context "against a blob field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value BLOB
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", nil] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: nil}
+      end
+    end
+
+    context "against an integer field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value INT
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", nil] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: nil}
+      end
+    end
+
+    context "against a float field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value FLOAT
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", nil] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: nil}
+      end
+    end
+
+    context "against a date field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value DATE
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", nil] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: nil}
+      end
+    end
+
+    context "against a datetime field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value DATETIME
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", nil] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: nil}
+      end
+    end
+
+    context "against a timestamp field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id    INT PRIMARY KEY AUTO_INCREMENT,
+          value TIMESTAMP NULL
+        )
+        SQL
+      end
+      let(:insert) { ["INSERT INTO test (value) VALUES (?)", nil] }
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, value: nil}
+      end
+    end
+  end
+
   describe "String param" do
     context "against a varchar field" do
       let(:table) do
