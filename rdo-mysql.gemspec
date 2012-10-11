@@ -16,7 +16,7 @@ Gem::Specification.new do |gem|
   gem.version       = RDO::MySQL::VERSION
   gem.extensions    = ["ext/rdo_mysql/extconf.rb"]
 
-  gem.add_runtime_dependency "rdo", ">= 0.0.8"
+  gem.add_runtime_dependency "rdo", "~> 0.1.0"
 
   gem.add_development_dependency "rspec"
   gem.add_development_dependency "rake-compiler"

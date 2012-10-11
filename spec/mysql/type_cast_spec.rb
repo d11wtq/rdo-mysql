@@ -103,6 +103,64 @@ describe RDO::MySQL::Driver, "type casting" do
     end
   end
 
+  describe "mediumtext cast" do
+    before(:each) do
+      connection.execute("CREATE TEMPORARY TABLE test (v MEDIUMTEXT)")
+      connection.execute("INSERT INTO test (v) VALUES ('bobby')")
+    end
+
+    let(:sql) { "SELECT v FROM test" }
+
+    it "returns a String" do
+      value.should == "bobby"
+    end
+
+    context "with utf-8 encoding" do
+      let(:options) { URI.parse(connection_uri).tap{|u| u.query = "encoding=utf-8"}.to_s }
+
+      it "has the correct encoding" do
+        value.encoding.should == Encoding.find("utf-8")
+      end
+    end
+
+    context "with iso-8859-1 encoding" do
+      let(:options) { URI.parse(connection_uri).tap{|u| u.query = "encoding=iso-8859-1"}.to_s }
+
+      it "has the correct encoding" do
+        value.encoding.should == Encoding.find("iso-8859-1")
+      end
+    end
+  end
+
+  describe "longtext cast" do
+    before(:each) do
+      connection.execute("CREATE TEMPORARY TABLE test (v LONGTEXT)")
+      connection.execute("INSERT INTO test (v) VALUES ('bobby')")
+    end
+
+    let(:sql) { "SELECT v FROM test" }
+
+    it "returns a String" do
+      value.should == "bobby"
+    end
+
+    context "with utf-8 encoding" do
+      let(:options) { URI.parse(connection_uri).tap{|u| u.query = "encoding=utf-8"}.to_s }
+
+      it "has the correct encoding" do
+        value.encoding.should == Encoding.find("utf-8")
+      end
+    end
+
+    context "with iso-8859-1 encoding" do
+      let(:options) { URI.parse(connection_uri).tap{|u| u.query = "encoding=iso-8859-1"}.to_s }
+
+      it "has the correct encoding" do
+        value.encoding.should == Encoding.find("iso-8859-1")
+      end
+    end
+  end
+
   describe "binary cast" do
     before(:each) do
       connection.execute("CREATE TEMPORARY TABLE test (v BINARY(3))")
