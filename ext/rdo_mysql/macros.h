@@ -38,25 +38,6 @@
 #define RDO_ERROR(...) (rb_raise(rb_path2class("RDO::Exception"), __VA_ARGS__))
 
 /**
- * Calls Driver#interpolate for args.
- *
- * @param VALUE (RDO::Driver)
- *   the Driver to use #quote from
- *
- * @param (VALUE *) args
- *   a C array where the first element is the SQL and the remainder are the bind params
- *
- * @param int argc
- *   the number of elements in args
- *
- * @return VALUE (String)
- *   a Ruby String with the SQL including the interpolated params
- */
-#define RDO_INTERPOLATE(driver, args, argc) \
-  (rb_funcall(driver, rb_intern("interpolate"), 2, \
-              args[0], rb_ary_new4(argc - 1, &args[1])))
-
-/**
  * Factory to return a new RDO::Result for an Enumerable object of tuples.
  *
  * @param VALUE (Enumerable) tuples
@@ -72,18 +53,6 @@
   (rb_funcall(rb_path2class("RDO::Result"), rb_intern("new"), 2, tuples, info))
 
 /**
- * Wrap the given StatementExecutor in a RDO::Statement.
- *
- * @param VALUE
- *   any object that responds to #command and #execute
- *
- * @return VALUE
- *   an RDO::Statement
- */
-#define RDO_STATEMENT(executor) \
-  (rb_funcall(rb_path2class("RDO::Statement"), rb_intern("new"), 1, executor))
-
-/**
  * Convert a C string to a ruby String.
  *
  * @param (char *) s
@@ -96,7 +65,8 @@
  *   a Ruby String
  */
 #define RDO_STRING(s, len, enc) \
-  (rb_enc_associate_index(rb_str_new(s, len), enc > 0 ? enc : 0))
+  (rb_enc_associate_index(rb_str_new(s, len), \
+                          enc > 0 ? enc : rb_enc_find_index("binary")))
 
 /**
  * Convert a C string to a ruby String, assuming possible NULL bytes.
@@ -110,7 +80,8 @@
  * @return VALUE (String)
  *   a Ruby String
  */
-#define RDO_BINARY_STRING(s, len) (rb_str_new(s, len))
+#define RDO_BINARY_STRING(s, len) \
+  (RDO_STRING(s, len, rb_enc_find_index("binary")))
 
 /**
  * Convert a C string to a Fixnum.
