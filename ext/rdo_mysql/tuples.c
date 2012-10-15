@@ -66,6 +66,9 @@ static VALUE rdo_mysql_cast_value(char * v, unsigned long len, MYSQL_FIELD f, in
 
     case MYSQL_TYPE_STRING:
     case MYSQL_TYPE_VAR_STRING:
+    case MYSQL_TYPE_MEDIUM_BLOB:
+    case MYSQL_TYPE_TINY_BLOB:
+    case MYSQL_TYPE_LONG_BLOB:
     case MYSQL_TYPE_BLOB:
       if (f.flags & SET_FLAG)
         return rdo_mysql_parse_set(v, len, enc);
@@ -83,6 +86,7 @@ static VALUE rdo_mysql_cast_value(char * v, unsigned long len, MYSQL_FIELD f, in
       return RDO_FLOAT(v);
 
     case MYSQL_TYPE_DATE:
+    case MYSQL_TYPE_NEWDATE:
       return RDO_DATE(v);
 
     case MYSQL_TYPE_TIMESTAMP:
