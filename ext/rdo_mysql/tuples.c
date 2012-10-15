@@ -27,6 +27,13 @@ static void rdo_mysql_tuple_list_free(RDOMySQLTupleList * list) {
   free(list);
 }
 
+/** Parse the string as a Set */
+static VALUE rdo_mysql_parse_set(char * v, unsigned long len, int enc) {
+  return rb_funcall(rb_path2class("Set"),
+      rb_intern("new"), 1, rb_funcall(RDO_STRING(v, len, enc),
+        rb_intern("split"), 1, rb_str_new2(",")));
+}
+
 /** Constructor to create a new TupleList for the given result */
 VALUE rdo_mysql_tuple_list_new(MYSQL_RES * res, int encoding) {
   RDOMySQLTupleList * list = malloc(sizeof(RDOMySQLTupleList));
@@ -60,7 +67,9 @@ static VALUE rdo_mysql_cast_value(char * v, unsigned long len, MYSQL_FIELD f, in
     case MYSQL_TYPE_STRING:
     case MYSQL_TYPE_VAR_STRING:
     case MYSQL_TYPE_BLOB:
-      if (f.charsetnr == RDO_MYSQL_BINARY_ENC)
+      if (f.flags & SET_FLAG)
+        return rdo_mysql_parse_set(v, len, enc);
+      else if (f.charsetnr == RDO_MYSQL_BINARY_ENC)
         return RDO_BINARY_STRING(v, len);
       else
         return RDO_STRING(v, len, enc);
@@ -120,6 +129,7 @@ static VALUE rdo_mysql_tuple_list_each(VALUE self) {
 /** Initializer for the TupleList class */
 void Init_rdo_mysql_tuples(void) {
   rb_require("rdo/mysql");
+  rb_require("set");
 
   VALUE mMySQL = rb_path2class("RDO::MySQL");
 

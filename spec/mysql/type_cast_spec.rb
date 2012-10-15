@@ -2,6 +2,7 @@ require "spec_helper"
 require "bigdecimal"
 require "date"
 require "uri"
+require "set"
 
 describe RDO::MySQL::Driver, "type casting" do
   let(:options)    { connection_uri }
@@ -265,6 +266,19 @@ describe RDO::MySQL::Driver, "type casting" do
 
     it "returns a DateTime in the system time zone" do
       value.should == DateTime.new(2012, 9, 30, 19, 4, 36, DateTime.now.zone)
+    end
+  end
+
+  describe "set cast" do
+    before(:each) do
+      connection.execute("CREATE TEMPORARY TABLE test (s SET('cat', 'dog', 'mouse'))")
+      connection.execute("INSERT INTO test (s) VALUES ('cat,mouse')")
+    end
+
+    let(:sql) { "SELECT s FROM test" }
+
+    it "returns a Set" do
+      value.should == Set["cat", "mouse"]
     end
   end
 end

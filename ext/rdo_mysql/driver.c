@@ -134,10 +134,21 @@ static VALUE rdo_mysql_driver_quote(VALUE self, VALUE obj) {
   return rb_str_new2(quoted);
 }
 
+/** Find any Set arguments and ensure they are formatted as Strings */
+static void rdo_mysql_driver_normalize_sets_bang(VALUE * args, int argc) {
+  int i = 0;
+  for (; i < argc; ++i) {
+    if (rb_funcall(args[i], rb_intern("kind_of?"), 1, rb_path2class("Set"))) {
+      args[i] = rb_funcall(rb_funcall(args[i], rb_intern("to_a"), 0),
+          rb_intern("join"), 1, rb_str_new2(","));
+    }
+  }
+}
+
 /** Find any Time/DateTime arguments and ensure they use the system time zone */
 static void rdo_mysql_driver_normalize_date_times_bang(VALUE * args, int argc) {
-  int i;
-  for (i = 0; i < argc; ++i) {
+  int i = 0;
+  for (; i < argc; ++i) {
     if (rb_funcall(args[i], rb_intern("kind_of?"), 1, rb_path2class("DateTime"))) {
       VALUE offset = rb_funcall(
           rb_funcall(rb_path2class("DateTime"), rb_intern("now"), 0),
@@ -167,6 +178,7 @@ static VALUE rdo_mysql_driver_execute(int argc, VALUE * args, VALUE self) {
   }
 
   rdo_mysql_driver_normalize_date_times_bang(&args[1], argc - 1);
+  rdo_mysql_driver_normalize_sets_bang(&args[1], argc - 1);
 
   VALUE stmt = RDO_INTERPOLATE(self, args, argc);
 
@@ -186,6 +198,7 @@ static VALUE rdo_mysql_driver_execute(int argc, VALUE * args, VALUE self) {
 void Init_rdo_mysql_driver(void) {
   rb_require("rdo/mysql/driver");
   rb_require("date");
+  rb_require("set");
 
   VALUE cMySQL = rb_path2class("RDO::MySQL::Driver");
 

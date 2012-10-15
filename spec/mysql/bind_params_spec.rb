@@ -1,6 +1,7 @@
 require "spec_helper"
 require "date"
 require "bigdecimal"
+require "set"
 
 describe RDO::MySQL::Driver, "bind params" do
   let(:options)    { connection_uri }
@@ -675,6 +676,30 @@ describe RDO::MySQL::Driver, "bind params" do
         it "is inferred correctly" do
           tuple.should == {id: 1, value: DateTime.new(1983, 5, 3, 7, 18, 54, DateTime.now.zone)}
         end
+      end
+    end
+  end
+
+  describe "Set param" do
+    context "against a set field" do
+      let(:table) do
+        <<-SQL
+        CREATE TABLE test (
+          id   INT PRIMARY KEY AUTO_INCREMENT,
+          pets SET('cat', 'dog', 'mouse')
+        )
+        SQL
+      end
+
+      let(:insert) do
+        [
+          "INSERT INTO test (pets) VALUES (?)",
+          Set["cat", "mouse"]
+        ]
+      end
+
+      it "is inferred correctly" do
+        tuple.should == {id: 1, pets: Set["cat", "mouse"]}
       end
     end
   end
