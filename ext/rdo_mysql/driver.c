@@ -138,10 +138,11 @@ static VALUE rdo_mysql_driver_quote(VALUE self, VALUE obj) {
 static void rdo_mysql_driver_normalize_sets_bang(VALUE * args, int argc) {
   int i = 0;
   for (; i < argc; ++i) {
-    if (rb_funcall(args[i], rb_intern("kind_of?"), 1, rb_path2class("Set"))) {
-      args[i] = rb_funcall(rb_funcall(args[i], rb_intern("to_a"), 0),
-          rb_intern("join"), 1, rb_str_new2(","));
-    }
+    if (rb_funcall(args[i], rb_intern("kind_of?"), 1, rb_path2class("Set")))
+      args[i] = rb_funcall(args[i], rb_intern("to_a"), 0);
+
+    if (rb_funcall(args[i], rb_intern("kind_of?"), 1, rb_cArray))
+      args[i] = rb_funcall(args[i], rb_intern("join"), 1, rb_str_new2(","));
   }
 }
 
